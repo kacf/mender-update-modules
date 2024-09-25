@@ -25,19 +25,19 @@ case "$STATE" in
         ;;
 
     ArtifactInstall)
-        if [ $(ls "$FILES/" | wc -l) -ne 1 ]; then
+        if [ $(ls "$FILES/files/" | wc -l) -ne 1 ]; then
             echo "Unexpected list of files in artifact:" 1>&2
-            ls "$FILES/" 1>&2
+            ls "$FILES/files/" 1>&2
             exit 1
         fi
 
-        if [ $(ls "$FILES"/*.yml 2>/dev/null | wc -l) -eq 1 ]; then
-            MANIFEST="$(ls "$FILES"/*.yml)"
-        elif [ $(ls "$FILES"/*.yaml 2>/dev/null | wc -l) -eq 1 ]; then
-            MANIFEST="$(ls "$FILES"/*.yaml)"
+        if [ $(ls "$FILES/files"/*.yml 2>/dev/null | wc -l) -eq 1 ]; then
+            MANIFEST="$(ls "$FILES/files"/*.yml)"
+        elif [ $(ls "$FILES/files"/*.yaml 2>/dev/null | wc -l) -eq 1 ]; then
+            MANIFEST="$(ls "$FILES/files"/*.yaml)"
         else
             echo "No yaml manifest in artifact:" 1>&2
-            ls "$FILES/" 1>&2
+            ls "$FILES/files/" 1>&2
             exit 1
         fi
 
@@ -69,6 +69,13 @@ case "$STATE" in
         fi
         ;;
 
+    ArtifactCommit)
+        mender-update-orchestrator \
+            resume \
+            --stop-before ArtifactRollback \
+            --stop-before Cleanup
+        ;;
+
     ArtifactRollback)
         RET=0
         mender-update-orchestrator \
@@ -86,12 +93,6 @@ case "$STATE" in
             sync "$FILES/tmp"
         fi
         exit $RET
-        ;;
-
-    ArtifactCommit)
-        mender-update-orchestrator \
-            resume \
-            --stop-before Cleanup
         ;;
 
     Cleanup)
